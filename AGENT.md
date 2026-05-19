@@ -121,7 +121,7 @@ Sessão de publicação no GitHub:
 - Criado `requirements.txt` com dependências mínimas (`pandas` e `openpyxl`).
 - Criado `.gitignore` para excluir cache Python, arquivos temporários/lock e microdados brutos em `data/raw/`.
 - Decisão de versionamento: incluir script, documentação, planilha final, planilha Sprint 3 e arquivos pequenos de auditoria em `archive/sprints/`; não versionar CSV/ZIP brutos do Inep por tamanho e por serem fonte pública externa.
-- Repositório remoto: `pedrofernando0/lista-emails-historia`, privado.
+- Repositório remoto criado inicialmente como `pedrofernando0/lista-emails-historia`, privado.
 
 Sessão de revisão da documentação:
 
@@ -132,3 +132,4 @@ Sessão de revisão da documentação:
 - Renomeadas as versões intermediárias em `archive/sprints/` com prefixos numerados e escopo regional.
 - Adicionado `docs/dicionario-de-dados.md`.
 - Reforçados na documentação os critérios de fonte oficial, rastreabilidade, não inferência e tratamento explícito da incerteza.
+- Repositório remoto renomeado para `pedrofernando0/mapeamento-contatos-historia-universidades-publicas`, mantendo visibilidade privada.
