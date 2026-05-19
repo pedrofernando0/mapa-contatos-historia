@@ -6,6 +6,10 @@ O projeto combina base oficial do Inep com apuração documental em fontes insti
 
 Neste recorte, "completo" significa cobrir todo o universo de universidades públicas definido pelos critérios do Inep usados no projeto e classificar todos os registros com curso de História, inclusive quando a conclusão é a ausência de contato oficial permanente publicado.
 
+## Status do projeto
+
+Primeira versão pública concluída e documentada. O repositório entrega a planilha final, a base auditável, versões intermediárias de apuração, documentação metodológica e um script para reconstruir a base oficial inicial a partir dos microdados do Inep.
+
 ## Entregáveis principais
 
 - `mapeamento_contatos_institucionais_historia_universidades_publicas.xlsx`: planilha final consolidada.
