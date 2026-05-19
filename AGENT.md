@@ -133,3 +133,11 @@ Sessão de revisão da documentação:
 - Adicionado `docs/dicionario-de-dados.md`.
 - Reforçados na documentação os critérios de fonte oficial, rastreabilidade, não inferência e tratamento explícito da incerteza.
 - Repositório remoto renomeado para `pedrofernando0/mapeamento-contatos-historia-universidades-publicas`, mantendo visibilidade privada.
+
+Sessão de padronização pública do repositório:
+
+- Repositório renomeado para `pedrofernando0/mapa-contatos-historia-universidades-publicas`.
+- Visibilidade alterada de privado para público.
+- Descrição configurada: "Mapeamento auditável de cursos de História e contatos institucionais em universidades públicas brasileiras."
+- Tópicos configurados para descoberta: `historia`, `universidades-publicas`, `ensino-superior`, `inep`, `censo-da-educacao-superior`, `dados-abertos`, `pesquisa-documental`, `contatos-institucionais`, `brasil`, `python`, `pandas`.
+- Configurações ajustadas: issues habilitadas, wiki e projects desabilitados, remoção automática de branch após merge habilitada.
