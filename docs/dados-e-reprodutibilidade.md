@@ -2,11 +2,11 @@
 
 ## Dados brutos
 
-Os microdados brutos do Inep nao sao versionados neste repositorio porque somam centenas de MB e podem ser obtidos diretamente da fonte oficial.
+Os microdados brutos do Inep não são versionados neste repositório porque somam centenas de MB e podem ser obtidos diretamente da fonte pública oficial.
 
 Fonte:
 
-- Inep - Microdados do Censo da Educacao Superior
+- Inep - Microdados do Censo da Educação Superior
 - https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/censo-da-educacao-superior
 
 Arquivo usado:
@@ -15,34 +15,69 @@ Arquivo usado:
 
 ## Estrutura esperada localmente
 
-Para regenerar a base inicial, extraia os arquivos CSV para:
+Para reconstruir a base oficial inicial, extraia os CSVs para:
 
 ```text
 data/raw/microdados_censo_da_educacao_superior_2024/dados/
 ```
 
-Arquivos obrigatorios:
+Arquivos obrigatórios:
 
 - `MICRODADOS_ED_SUP_IES_2024.CSV`
 - `MICRODADOS_CADASTRO_CURSOS_2024.CSV`
 
-## Regeneracao da base inicial
-
-Com as dependencias instaladas:
+## Dependências
 
 ```bash
-python3 scripts/build_historia_universidades.py --output lista_universidades_publicas_historia.xlsx
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Esse comando recria a planilha-base com universidades publicas, cursos de Historia, pendencias de contato, sprints e fontes iniciais.
+## Reconstrução da base oficial
 
-## O que nao e reproduzido automaticamente
+```bash
+python3 scripts/build_historia_universidades.py --output base_universidades_publicas_cursos_historia.xlsx
+```
 
-A planilha final inclui apuracao manual/assistida de e-mails em sites oficiais das universidades. Essa etapa depende de navegacao, paginas institucionais e revisao de fontes, por isso nao e totalmente reproduzida pelo script.
+O script gera uma planilha com:
 
-As evidencias e decisoes dessa apuracao estao preservadas em:
+- resumo dos critérios;
+- universidades públicas;
+- cursos de História;
+- fila inicial de apuração de contatos;
+- plano de sprints;
+- fontes iniciais.
 
-- `lista_emails_departamentos_historia_final.xlsx`
-- `lista_universidades_publicas_historia_sprint3.xlsx`
+## O que é reproduzível por script
+
+- identificação das universidades públicas;
+- identificação dos cursos de História;
+- contagens de cursos, vagas e matrículas;
+- estrutura inicial da planilha de trabalho.
+
+## O que depende de apuração documental
+
+A planilha final inclui pesquisa manual/assistida em sites oficiais das universidades. Essa etapa não é totalmente reproduzida por script porque depende de páginas institucionais, documentos publicados, proteção anti-spam, páginas multicampi e julgamento documental.
+
+As evidências e decisões dessa etapa estão preservadas em:
+
+- `mapeamento_contatos_institucionais_historia_universidades_publicas.xlsx`
+- `base_auditavel_universidades_publicas_cursos_historia.xlsx`
 - `archive/sprints/`
 - `AGENT.md`
+
+## Política de versionamento dos dados
+
+Versionado:
+
+- scripts;
+- documentação;
+- planilhas finais e auditáveis de pequeno porte;
+- versões intermediárias relevantes para rastreabilidade.
+
+Não versionado:
+
+- ZIP e CSVs brutos do Inep;
+- caches locais;
+- arquivos temporários ou locks de editor/planilha.

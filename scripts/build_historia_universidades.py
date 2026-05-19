@@ -16,7 +16,7 @@ from openpyxl.utils import get_column_letter
 RAW_DIR = Path("data/raw/microdados_censo_da_educacao_superior_2024/dados")
 IES_CSV = RAW_DIR / "MICRODADOS_ED_SUP_IES_2024.CSV"
 CURSOS_CSV = RAW_DIR / "MICRODADOS_CADASTRO_CURSOS_2024.CSV"
-DEFAULT_OUTPUT = Path("lista_universidades_publicas_historia.xlsx")
+DEFAULT_OUTPUT = Path("base_universidades_publicas_cursos_historia.xlsx")
 
 
 ORG_MAP = {

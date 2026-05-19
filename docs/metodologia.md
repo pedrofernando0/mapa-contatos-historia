@@ -1,46 +1,103 @@
 # Metodologia
 
-## Objetivo
+## Pergunta de trabalho
 
-Identificar universidades publicas brasileiras com curso de Historia e consolidar contatos institucionais uteis para secretaria, secao de alunos, departamento, coordenacao ou chefia.
+Quais universidades públicas brasileiras possuem cursos de História e quais contatos institucionais publicamente verificáveis podem ser usados para comunicação com as estruturas acadêmicas ligadas a esses cursos?
+
+## Escopo
+
+Inclui:
+
+- universidades públicas brasileiras registradas no Censo da Educação Superior 2024;
+- cursos de História identificados na base oficial do Inep;
+- contatos institucionais vinculados a secretaria, seção de alunos, coordenação, departamento, centro, instituto, faculdade ou chefia;
+- fontes oficiais ou institucionais com URL e data de verificação.
+
+Não inclui:
+
+- instituições privadas;
+- centros universitários, faculdades isoladas, IFs ou Cefets quando não classificados como universidade pela variável usada;
+- cursos de História da Arte;
+- e-mails inferidos por padrão de domínio;
+- contatos sem lastro documental público.
 
 ## Fonte-base
 
-A base oficial usada para identificar universidades e cursos foi o Censo da Educacao Superior 2024, publicado pelo Inep.
+A fonte estruturante é o Censo da Educação Superior 2024, publicado pelo Inep.
 
-## Criterios de selecao
+Arquivos usados:
 
-Universidade publica:
+- `MICRODADOS_ED_SUP_IES_2024.CSV`
+- `MICRODADOS_CADASTRO_CURSOS_2024.CSV`
+
+## Critérios de seleção
+
+Universidade pública:
 
 - `TP_ORGANIZACAO_ACADEMICA=1`
 - `TP_REDE=1`
 
-Curso de Historia:
+Curso de História:
 
-- `NO_CURSO` contem `Historia`
-- linhas locais com `TP_DIMENSAO=1`
-- cursos classificados como `Historia da Arte` foram excluidos
+- `NO_CURSO` contém `História`;
+- `TP_DIMENSAO=1`, para considerar linhas locais;
+- exclusão de cursos classificados como `História da Arte`.
 
-## Criterios de apuracao de e-mails
+Esses critérios produzem um universo fechado de 116 universidades públicas, das quais 94 têm ao menos um curso de História.
 
-Foram aceitas apenas fontes oficiais ou institucionais, incluindo:
+## Apuração documental dos contatos
 
-- paginas da universidade;
-- paginas de curso, departamento, centro, instituto ou faculdade;
-- paginas de pro-reitoria, registro academico ou secao de alunos;
-- documentos oficiais publicados no dominio institucional.
+A etapa de contatos foi tratada como apuração documental, não como preenchimento automático.
 
-E-mails nao foram inferidos por padrao de dominio. Quando nao havia fonte suficiente, o campo permaneceu sem e-mail direto e o status foi marcado como `Nao encontrado` ou `Apurado com ressalva`, conforme o caso.
+Fontes aceitas:
 
-## Status usados
+- páginas oficiais da universidade;
+- páginas de curso, departamento, coordenação, centro, instituto ou faculdade;
+- páginas de pró-reitoria, registro acadêmico, seção de alunos ou secretaria;
+- documentos oficiais publicados em domínio institucional;
+- páginas de programas institucionais quando o contato direto do curso não estava publicamente disponível, sempre com ressalva.
 
-- `Apurado`: contato localizado em fonte oficial/institucional e adequado ao uso.
-- `Apurado com ressalva`: contato oficial localizado, mas com limitacao operacional, como contato pessoal institucional, multicampi, secretaria indireta, pos-graduacao ou protecao anti-spam.
-- `Nao encontrado`: nao foi localizado e-mail oficial permanente de secretaria, coordenacao, departamento ou equivalente.
+Fontes não aceitas como evidência suficiente:
 
-## Validacoes finais
+- agregadores comerciais;
+- páginas sem vínculo institucional claro;
+- e-mails deduzidos por padrão;
+- contatos pessoais sem publicação institucional;
+- conteúdo sem URL rastreável.
 
-- Consolidacao de 94 universidades publicas com Historia.
-- Remocao de pendencias operacionais da fila principal.
-- Validacao basica de sintaxe dos e-mails consolidados.
-- Preservacao das fontes e observacoes de ressalva nas abas da planilha final.
+## Crítica de fonte
+
+Cada contato foi interpretado conforme quatro dimensões:
+
+- origem: se a página ou documento pertence à universidade ou a estrutura institucional vinculada;
+- proximidade: se o contato é diretamente do curso/departamento ou se é um canal acadêmico indireto;
+- atualidade: se a fonte parece ativa e compatível com o uso pretendido;
+- suficiência: se a evidência permite usar o e-mail sem extrapolação.
+
+Quando uma dessas dimensões era fraca, o registro foi mantido com ressalva em vez de ser apresentado como contato plenamente apurado.
+
+## Classificação dos resultados
+
+- `Apurado`: contato localizado em fonte oficial ou institucional e adequado ao uso.
+- `Apurado com ressalva`: contato localizado, mas com limitação relevante, como multicampi, contato indireto, e-mail pessoal institucional, proteção anti-spam, página antiga, fonte de pós-graduação ou ausência de e-mail genérico do curso.
+- `Não encontrado`: não foi localizado e-mail oficial permanente de secretaria, coordenação, departamento ou estrutura equivalente.
+
+## Tratamento da incerteza
+
+A ausência de evidência foi preservada como dado. Quando a fonte pública não permitiu confirmar um e-mail direto, o registro foi marcado com ressalva ou como `Não encontrado`; não houve preenchimento por adivinhação.
+
+Esse procedimento é importante para manter o valor histórico e documental do levantamento: a planilha registra tanto o contato encontrado quanto os limites de visibilidade pública das instituições.
+
+## Completude do mapeamento
+
+O mapeamento é completo dentro do recorte definido: todas as universidades públicas identificadas pelos critérios do projeto foram classificadas, e todas as universidades com curso de História receberam um status final de apuração.
+
+Completude, aqui, não significa que toda instituição publique um e-mail direto e permanente. Significa que cada caso foi examinado, classificado e documentado conforme a evidência disponível.
+
+## Validações finais
+
+- Conferência da cobertura: 94 universidades públicas com História na planilha final.
+- Checagem de ausência de registros pendentes.
+- Deduplicação de e-mails consolidados.
+- Validação básica de sintaxe dos e-mails.
+- Preservação de fontes, datas de verificação e observações de ressalva.

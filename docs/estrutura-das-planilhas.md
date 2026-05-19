@@ -1,37 +1,70 @@
 # Estrutura das planilhas
 
-## `lista_emails_departamentos_historia_final.xlsx`
+## Planilha final
 
-Planilha final consolidada.
+Arquivo:
 
-Abas:
+- `mapeamento_contatos_institucionais_historia_universidades_publicas.xlsx`
 
-- `Contatos_Historia`: lista principal de universidades com curso de Historia, contatos encontrados, status e observacoes.
-- `Resumo`: metricas finais da consolidacao.
-- `Pendencias_Finais`: casos com ressalva operacional ou sem contato permanente localizado.
-- `Emails_Unicos`: relacao deduplicada de e-mails e instituicoes associadas.
-- `Fontes_Revisao_Final`: fontes usadas na etapa final de revisao.
-- `Fontes_Sprint3`: fontes acumuladas na sprint anterior.
+Uso:
 
-## `lista_universidades_publicas_historia_sprint3.xlsx`
-
-Base auditavel anterior a consolidacao final.
+- consultar os contatos consolidados;
+- verificar status de apuração;
+- examinar ressalvas e pendências finais;
+- recuperar fontes usadas na etapa final.
 
 Abas:
 
-- `Resumo`: criterios e contagens da base.
-- `Universidades`: todas as universidades publicas listadas.
-- `Cursos_Historia`: cursos de Historia identificados no Censo/Inep.
-- `Pendencias_Email`: fila de universidades com Historia e status de apuracao.
-- `Sprints`: plano de execucao por etapas.
-- `Fontes`: fontes consultadas durante a apuracao.
+- `Contatos_Historia`: tabela principal com universidades, contatos, fontes, status e observações.
+- `Resumo`: métricas finais da consolidação.
+- `Pendencias_Finais`: casos com ressalva operacional ou sem contato oficial permanente localizado.
+- `Emails_Unicos`: relação deduplicada de e-mails consolidados.
+- `Fontes_Revisao_Final`: fontes usadas na revisão final.
+- `Fontes_Sprint3`: fontes acumuladas na etapa anterior.
 
-## `archive/sprints/`
+## Base auditável
 
-Guarda versoes intermediarias das sprints para rastreabilidade:
+Arquivo:
 
-- base inicial;
-- Sprint 1;
-- Sprint 2.
+- `base_auditavel_universidades_publicas_cursos_historia.xlsx`
 
-Esses arquivos permitem comparar a evolucao da apuracao antes da consolidacao final.
+Uso:
+
+- auditar o universo de universidades públicas;
+- conferir cursos de História identificados no Censo/Inep;
+- rastrear a evolução antes da consolidação final.
+
+Abas:
+
+- `Resumo`: critérios e contagens da base.
+- `Universidades`: todas as universidades públicas identificadas pelos critérios do projeto.
+- `Cursos_Historia`: cursos de História encontrados na base oficial.
+- `Pendencias_Email`: fila de universidades com História e status de apuração na etapa anterior.
+- `Sprints`: plano de execução por etapas.
+- `Fontes`: fontes consultadas durante a apuração.
+
+## Arquivos históricos
+
+Pasta:
+
+- `archive/sprints/`
+
+Arquivos:
+
+- `00_base_inicial_universidades_publicas_historia.xlsx`
+- `01_apuracao_norte_centro_oeste.xlsx`
+- `02_apuracao_nordeste.xlsx`
+
+Uso:
+
+- preservar versões intermediárias;
+- permitir comparação entre etapas;
+- manter rastreabilidade do processo de apuração.
+
+## Convenção de nomes
+
+Os nomes foram padronizados para diferenciar três camadas:
+
+- `mapeamento_...`: produto final de contatos institucionais.
+- `base_auditavel_...`: base de verificação e rastreabilidade.
+- `archive/sprints/NN_...`: etapas históricas do trabalho.
