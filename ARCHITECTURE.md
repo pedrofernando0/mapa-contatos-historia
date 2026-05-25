@@ -1,340 +1,355 @@
-# ARCHITECTURE.md — mapa-contatos-historia
+# Architecture Documentation: Mapa de Contatos Institucionais de Cursos de Historia
 
-## 1. Introduction and Goals
+> arc42-lite | 12 sections | v1.0
 
-### 1.1. Problem Statement
+---
 
-Brazil has no single, publicly audited directory of institutional contacts for History departments in public universities. Existing contact lists are often incomplete, out of date, or lack source transparency. Researchers, students, and institutional coordinators need a verifiable, documented map.
+## 1. Introduction & Goals
 
-### 1.2. Solution
+### 1.1 Problem Statement
 
-A data pipeline that:
-- Reads official INEP microdata (Censo da Educacao Superior) to identify all Brazilian public universities and their History courses.
-- Supports a documented manual verification workflow to collect and audit institutional email contacts.
-- Produces auditable Excel workbooks with clear provenance, status, and caveats for every record.
+Brazilian public universities maintain History courses with publicly visible institutional contacts, but there is no centralized, auditable mapping of these contacts. Existing approaches rely on ad-hoc lists, inferred email patterns, or non-public aggregators. Departments, researchers, and extension programs lack a verified, source-cited directory of History course secretariats, student sections, and departmental leadership.
 
-### 1.3. Quality Goals
+### 1.2 Stakeholder Goals
 
-| Goal | Priority |
-|------|----------|
-| **Traceability** — every recorded contact must link to a verifiable public source with a timestamp. | High |
-| **Accuracy** — the INEP-derived universe of universities and courses must match official data. | High |
-| **Reproducibility** — the initial database (from INEP microdata) must be rebuildable by a single script. | High |
-| **Integrity** — manual verification decisions are preserved, never overwritten by inference. | High |
+| Stakeholder | Goal |
+|---|---|
+| PET Historia USP | Obtain verifiable institutional contacts for academic communication |
+| History researchers | Access validated email channels for surveys, partnerships, and events |
+| University administration | Be listed through official public channels only |
+| Public data community | Reproduce the pipeline from INEP open data to final spreadsheet |
 
-### 1.4. Stakeholders
+### 1.3 System Vision
 
-- **Researchers** in History needing contact information.
-- **PET Historia USP** (project maintainers) auditing and updating contacts.
-- **University administrators** whose contact channels are catalogued.
+A reproducible, auditable pipeline that:
+
+1. Extracts Brazilian public universities from INEP Higher Education Census 2024 microdata
+2. Identifies History courses within those universities
+3. Produces a base spreadsheet for manual/semi-assisted documentary verification of institutional contacts
+4. Delivers a final consolidated spreadsheet with source URLs, verification dates, and caveat annotations
 
 ---
 
 ## 2. Constraints
 
-| Constraint | Impact |
-|------------|--------|
-| INEP microdata (CSV) is not versioned in Git (files are hundreds of MB). | Users must download the ZIP manually; only the extraction/transform script is committed. |
-| Contact collection is a manual process per university website. | Cannot be fully automated; the final spreadsheet cannot be script-generated end-to-end. |
-| Target audience is non-technical (coordinators, admin staff). | Deliverable is an `.xlsx` spreadsheet, not an API or database. |
-| MIT license for maximal reuse. | No restrictions on downstream use. |
+### 2.1 Technical Constraints
+
+| Constraint | Rationale |
+|---|---|
+| Python 3.12+ required | pandas 3.x and openpyxl 3.x compatibility |
+| INEP CSV microdata must be downloaded separately | Files are large (~hundreds of MB); not versioned in Git |
+| Openpyxl as the sole Excel engine | Required for formatting, freeze panes, auto-filters, column widths |
+| Latin-1 encoding for INEP CSVs | Official INEP encoding; must be handled explicitly |
+
+### 2.2 Organizational Constraints
+
+| Constraint | Rationale |
+|---|---|
+| Manual verification phase required | Contact accuracy depends on documentary evidence not reproducible by script alone |
+| No email inference allowed | Emails must be sourced from institutional public pages; domain-pattern guessing is forbidden |
+| Every contact must carry a source URL and verification date | Auditability requirement for academic rigor |
+| MIT License | Open-sourced for reuse and verification by the academic community |
 
 ---
 
-## 3. Context and Scope
+## 3. Context & Scope
 
-### 3.1. System Context
+### 3.1 System Context (C4 Context Diagram)
 
-```
-┌──────────────────┐     HTTP download      ┌─────────────────────┐
-│  INEP Open Data  │ ───────────────────────>│  build_historia_    │
-│  Portal          │                         │  universidades.py   │
-│  (gov.br/inep)   │                         │                     │
-└──────────────────┘                         └────────┬────────────┘
-                                                       │
-                                                       │ writes
-                                                       ▼
-┌──────────────────┐                          ┌─────────────────────┐
-│  University      │                          │  base_auditavel_    │
-│  Websites        │                          │  .xlsx              │
-│  (manual review) │                          │  (6 sheets)         │
-│                  │     manual notes         │                     │
-│  ─────────────────────────────────────────> │  + manual edits →   │
-│                  │                          │  mapeamento_...xlsx │
-└──────────────────┘                          └─────────────────────┘
-                                                       │
-                                                       ▼
-                                              ┌─────────────────────┐
-                                              │  End users          │
-                                              │  (researchers,      │
-                                              │  coordinators)      │
-                                              └─────────────────────┘
+```mermaid
+C4Context
+  Person(researcher, "Researcher / PET Member", "Consumer of the final contact map")
+  System(buildSys, "Contact Map Pipeline", "Extracts, filters, and produces auditable spreadsheets of History contacts in Brazilian public universities")
+  System_Ext(inep, "INEP Open Data", "Higher Education Census 2024 microdata (CSV)")
+  System_Ext(univSites, "University Official Websites", "Institutional pages consulted during manual verification")
+  System_Ext(excel, "Excel / LibreOffice", "Tool used for manual verification sprints")
+  System_Ext(git, "GitHub Repository", "Source code, documentation, and artifact storage")
+
+  Rel(researcher, buildSys, "Consumes spreadsheets")
+  Rel(buildSys, inep, "Reads IES and course CSVs")
+  Rel(buildSys, excel, "Produces .xlsx workbooks")
+  Rel(buildSys, git, "Stores scripts, docs, and final artifacts")
+  Rel(univSites, excel, "Provides source for manual contact verification")
 ```
 
-### 3.2. Scope / Business Context
+### 3.2 Scope
 
-**In scope:**
-- Public Brazilian universities (`TP_ORGANIZACAO_ACADEMICA = 1`, `TP_REDE = 1`).
-- History courses (excluding "Historia da Arte").
-- Institutional contacts (secretariat, student section, department, coordination).
-- Source URL, verification date, and caveats for each contact.
+**Included:**
+- Brazilian public universities (TP_ORGANIZACAO_ACADEMICA = 1, TP_REDE = 1 per INEP)
+- History courses identified by normalized name matching
+- Institutional contacts: secretariat, student section, department, coordination, center, institute
+- Source URL and verification date for every contact
 
-**Out of scope:**
-- Private institutions.
-- Non-university HEIs (centros universitarios, faculdades, IFs).
-- Email inference by domain pattern.
-- Contacts without public documentary evidence.
+**Excluded:**
+- Private institutions, university centers, isolated faculties, IFs, Cefets
+- Art History courses (excluded by CINE_ROTULO filter)
+- Inferred or domain-pattern-generated emails
+- Contacts without public documentary evidence
 
 ---
 
 ## 4. Solution Strategy
 
-1. **Official source first** — the institution and course universe is defined exclusively by INEP's Censo da Educacao Superior.
-2. **Script-based rebuild** — `build_historia_universidades.py` reconstructs the baseline from raw INEP CSVs.
-3. **Documented manual audit** — contact collection follows a written methodology with pre-defined classifications (`Apurado`, `Apurado com ressalva`, `Nao encontrado`).
-4. **Excel as output format** — selected for universal accessibility among non-technical users.
-5. **Sprint-based verification** — organized in regional sprints (Norte/Centro-Oeste, Nordeste, Sudeste, Sul) for manageability.
-6. **Git as audit trail** — intermediate spreadsheets are archived in `archive/sprints/`.
+### 4.1 Architecture Decisions at a Glance
+
+| Decision | Choice | Alternative Considered |
+|---|---|---|
+| Data pipeline | Python script + manual verification | Fully automated scraping (rejected: institutional sites block bots, degrade auditability) |
+| Output format | .xlsx with openpyxl formatting | CSV (rejected: lacks formatting, multi-sheet structure for audit trails) |
+| Contact verification | Human researcher via browser | Automated email harvesting (rejected: ethical and legal concerns) |
+| Version control | Git with INEP data excluded | Full data tracking (rejected: file size) |
+| Documentation language | Portuguese (primary), English (contributing) | English-only (rejected: local academic context) |
+
+### 4.2 Quality Strategy
+
+- **Auditability:** Every contact has source URL, verification date, and caveat annotation
+- **Reproducibility:** Script reproduces the initial official base from INEP microdata
+- **Transparency:** Verification status uses three explicit categories (Apurado / Apurado com ressalva / Nao encontrado)
+- **Traceability:** Intermediate sprint files preserved in `archive/sprints/`
 
 ---
 
-## 5. Building Block View
+## 5. Building Blocks (C4 Container Diagram)
 
-### 5.1. Level 1 — Repository Structure
+```mermaid
+C4Container
+  Person(researcher, "Researcher", "Consumes spreadsheets and performs verification")
 
-```
-mapa-contatos-historia/
-├── scripts/
-│   └── build_historia_universidades.py   # INEP microdata → Excel pipeline
-├── docs/
-│   ├── metodologia.md                    # Research methodology
-│   ├── dados-e-reprodutibilidade.md      # Reproducibility guide
-│   ├── estrutura-das-planilhas.md        # Spreadsheet layout reference
-│   └── dicionario-de-dados.md            # Data dictionary
-├── archive/sprints/                      # Intermediate snapshots
-├── AGENT.md                              # Technical diary
-├── ARCHITECTURE.md                       # This document
-├── CONTRIBUTING.md                       # Contribution guide
-├── requirements.txt                      # Python dependencies
-├── .github/workflows/ci.yml             # CI pipeline (ruff lint + syntax check)
-├── .gitignore
-├── LICENSE                               # MIT
-├── README.md                             # Bilingual project readme
-├── base_auditavel_...xlsx                # Auditable baseline
-└── mapeamento_contatos_...xlsx           # Final consolidated spreadsheet
-```
+  System_Boundary(pipeline, "Contact Map Pipeline") {
+    Container(script, "build_historia_universidades.py", "Python 3, pandas, openpyxl", "Loads INEP CSVs, filters public universities and History courses, produces the auditable base workbook")
+    Container(workbook, "Auditable Base (.xlsx)", "Excel workbook", "6-sheet workbook with summary, universities, courses, pending emails, sprints, and sources")
+    Container(manualVerif, "Manual Verification Sprint", "Browser + LibreOffice", "Human-led documentary verification of institutional contacts on official university sites")
+    Container(finalWorkbook, "Final Contact Map (.xlsx)", "Excel workbook", "6-sheet consolidated workbook with contacts, summary, pending items, unique emails, and source lists")
+  }
 
-### 5.2. Level 2 — Script Architecture
+  System_Ext(inepCSV, "INEP Microdata CSVs", "Semicolon-delimited, latin-1 encoded")
+  System_Ext(github, "GitHub Repository", "Versioned source and artifacts")
+  System_Ext(archive, "archive/sprints/", "Intermediate verification snapshots")
 
-```
-build_historia_universidades.py
-│
-├── CLI entrypoint (argparse)
-│   ├── --output  (default: base_universidades_publicas_cursos_historia.xlsx)
-│
-├── load_public_universities()
-│   └── Reads IES CSV → filters TP_ORGANIZACAO_ACADEMICA=1 & TP_REDE=1
-│       → normalizes names → returns DataFrame
-│
-├── load_history_courses(public_ies_ids)
-│   └── Reads CURSOS CSV (chunked for memory efficiency)
-│       → filters by public IES IDs & "HISTORIA" course name
-│       → excludes "HISTORIA DA ARTE"
-│       → returns DataFrame
-│
-├── build_workbook(universities, courses, output)
-│   ├── Merges universities + course counts
-│   ├── Adds empty email columns for manual verification
-│   ├── Creates 6 Excel sheets via pandas.ExcelWriter
-│   │   ├── Resumo
-│   │   ├── Universidades
-│   │   ├── Cursos_Historia
-│   │   ├── Pendencias_Email
-│   │   ├── Sprints
-│   │   └── Fontes
-│   └── format_workbook() — openpyxl styling
-│       ├── Header fill (blue #1F4E78), white bold font
-│       ├── Frozen panes, auto-filter
-│       ├── Dynamic column widths
-│       └── Wrapped text + vertical top alignment
-│
-└── humanize_columns()
-    └── Maps snake_case → Title Case with trailing acronyms preserved
-```
-
-### 5.3. Data Flow
-
-```
-INEP ZIP
-  │
-  ▼
-MICRODADOS_ED_SUP_IES_2024.CSV  +  MICRODADOS_CADASTRO_CURSOS_2024.CSV
-  │                                       │
-  │  (chunked CSV read)                   │
-  ▼                                       ▼
-DataFrame: public_universities      DataFrame: history_courses
-  │                                       │
-  └─────────── merge on CO_IES ───────────┘
-                        │
-                        ▼
-              Excel workbook (6 sheets)
-                        │
-                        ▼
-              Manual contact verification
-              (classified per methodology)
-                        │
-                        ▼
-              Final spreadsheet:
-              mapeamento_contatos_...xlsx
+  Rel(script, inepCSV, "Reads IES and course tables")
+  Rel(script, workbook, "Generates base workbook")
+  Rel(researcher, workbook, "Opens for verification sprints")
+  Rel(researcher, manualVerif, "Visits official websites")
+  Rel(manualVerif, finalWorkbook, "Consolidates verified contacts")
+  Rel(finalWorkbook, researcher, "Final deliverable")
+  Rel(workbook, github, "Versioned")
+  Rel(finalWorkbook, github, "Versioned")
+  Rel(archive, github, "Preserved for audit")
 ```
 
 ---
 
 ## 6. Runtime View
 
-### 6.1. Baseline rebuild
-
-```bash
-# 1. Install Python 3.12+ and venv
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-# 2. Download INEP microdata ZIP and extract to:
-#    data/raw/microdados_censo_da_educacao_superior_2024/dados/
-
-# 3. Run the pipeline
-python3 scripts/build_historia_universidades.py \
-    --output base_universidades_publicas_cursos_historia.xlsx
-```
-
-### 6.2. Manual verification
-
-1. Open the generated workbook.
-2. For each university with History courses (`Pendencias_Email` sheet):
-   - Visit the university's official website.
-   - Locate the secretariat, student section, or department email.
-   - Record email, source URL, and verification date.
-   - Classify as `Apurado`, `Apurado com ressalva`, or `Nao encontrado`.
-3. Consolidate into `mapeamento_contatos_institucionais_historia_universidades_publicas.xlsx`.
-
-### 6.3. CI pipeline
+### 6.1 Pipeline Execution
 
 ```mermaid
-flowchart LR
-    A[git push] --> B[GitHub Actions]
-    B --> C[setup-python v3.12]
-    C --> D[pip install ruff + requirements]
-    D --> E[ruff check scripts/]
-    D --> F[ast.parse syntax check]
-    E --> G[pass/fail]
-    F --> G
+sequenceDiagram
+  participant R as Researcher
+  participant S as build_historia_universidades.py
+  participant I as INEP CSVs
+  participant W as Auditable Workbook
+
+  R->>S: python build_historia_universidades.py --output base.xlsx
+  S->>I: require_inputs() - check CSV existence
+  S->>I: load_public_universities() - read IES CSV, filter TP_ORGANIZACAO_ACADEMICA=1 & TP_REDE=1
+  S->>I: load_history_courses() - read CURSOS CSV in chunks, filter History
+  S->>W: build_workbook() - merge, compute aggregates, write 6 sheets
+  S->>W: format_workbook() - apply header styling, column widths, freeze panes
+  S->>R: Print summary (counts, metrics)
+```
+
+### 6.2 Verification Sprint Workflow
+
+```mermaid
+sequenceDiagram
+  participant R as Researcher
+  participant S as Sprint Workbook
+  participant U as University Website
+  participant F as Final Workbook
+
+  R->>S: Open sprint workbook
+  loop For each pending university
+    R->>U: Navigate to institutional page
+    U->>R: Display contact information
+    R->>R: Evaluate source: origin, proximity, currency, sufficiency
+    alt Contact found and adequate
+      R->>S: Fill email, source URL, date; status = "Apurado"
+    else Contact found with caveats
+      R->>S: Fill email, source URL, date; status = "Apurado com ressalva"
+      R->>S: Add caveat in observacoes
+    else No permanent official contact
+      R->>S: Status = "Nao encontrado"; justification in observacoes
+    end
+  end
+  R->>F: Consolidate all sprints into final workbook
 ```
 
 ---
 
-## 7. Deployment View
+## 7. Deployment
 
-No runtime deployment. The project is a data-processing pipeline that runs locally on the user's machine. Deliverables are Excel workbooks committed to the repository.
+### 7.1 Local Execution Environment
 
-**CI:** GitHub Actions validates Python syntax and lint on push/PR to `main`.
+```
+Workstation (Linux / macOS / Windows)
+  |
+  |-- Python 3.12 virtual environment
+  |-- Dependencies: pandas, openpyxl
+  |-- Local data/raw/microdados_censo_da_educacao_superior_2024/dados/
+  |     |-- MICRODADOS_ED_SUP_IES_2024.CSV
+  |     |-- MICRODADOS_CADASTRO_CURSOS_2024.CSV
+  |
+  |-- scripts/build_historia_universidades.py
+  |-- Output: base_universidades_publicas_cursos_historia.xlsx
+```
+
+### 7.2 CI Pipeline
+
+```yaml
+Platform: GitHub Actions (ubuntu-latest)
+Trigger: push / pull_request on main
+Steps:
+  1. Set up Python 3.12
+  2. pip install ruff, pandas, openpyxl
+  3. ruff check scripts/
+  4. ast.parse verification of build script
+```
 
 ---
 
 ## 8. Cross-cutting Concepts
 
-### 8.1. Data Integrity
+### 8.1 Data Quality
 
-- University identification relies solely on official INEP codes (`CO_IES`).
-- History course detection uses normalized uppercase comparison with regex boundary check (`\bHISTORIA\b`).
-- "Historia da Arte" is explicitly excluded to avoid false positives.
-- Manual verification adds emails; emails are never inferred or extrapolated.
+| Concept | Implementation |
+|---|---|
+| Normalization | NFKD Unicode normalization, ASCII folding, uppercase for matching |
+| Deduplication | Course-level dedup by CO_CURSO; email dedup in final consolidation |
+| Validation | Basic email syntax check; verification status classification |
+| Source integrity | URL + verification date required for every contact entry |
 
-### 8.2. Reproducibility
+### 8.2 Error Handling
 
-- `requirements.txt` pins major versions (pandas >=3, openpyxl >=3).
-- Raw INEP data is not committed; download instructions are documented.
-- The script produces deterministic output for the same input data.
+- Missing INEP CSVs produce a clear error with download instructions
+- pandas chunksize=200000 for memory-safe processing of large course CSV
+- Empty course data is handled gracefully (returns empty DataFrame)
 
-### 8.3. Auditability
+### 8.3 Formatting Standards
 
-- Every contact record preserves: source URL, verification date, and caveat.
-- Intermediate sprint snapshots are archived in `archive/sprints/`.
-- The methodology document defines classification rules for all possible outcomes.
+- Header style: dark blue fill (1F4E78), white bold font, centered, wrap text
+- Column width: dynamic min(12, max(len+2), 52)
+- Freeze panes at row 2 for all sheets
+- Auto-filter enabled on all sheets
 
-### 8.4. Non-technical Accessibility
+### 8.4 Version Control Policy
 
-- Output format is `.xlsx` (no database or API required).
-- Column names are human-readable (Portuguese).
-- Spreadsheets include formatting (frozen headers, auto-filter, wrapped text).
-
----
-
-## 9. Architecture Decisions
-
-| ADR | Decision | Rationale |
-|-----|----------|-----------|
-| **ADR-001** | Excel as output format | Universal accessibility for non-technical users; no app or API needed. |
-| **ADR-002** | INEP as sole source for institution universe | Ensures completeness and reproducibility; INEP is the official Brazilian HEI registry. |
-| **ADR-003** | Manual contact collection | Many university websites lack structured data; automated scraping would be unreliable and opaque. |
-| **ADR-004** | Three-tier classification | `Apurado` / `Apurado com ressalva` / `Nao encontrado` captures uncertainty without false precision. |
-| **ADR-005** | No email inference | Never derive emails from domain patterns to prevent inaccurate contacts. |
-| **ADR-006** | Snapshots in Git | Intermediate spreadsheets are small; committing them preserves full audit trail. |
+| Artifact | Versioned | Rationale |
+|---|---|---|
+| Python scripts | Yes | Core pipeline |
+| Documentation | Yes | Methodology, data dictionary, reproducibility |
+| Final workbook | Yes | Primary deliverable |
+| Intermediate workbooks | Yes | Audit trail in archive/sprints/ |
+| INEP raw CSVs | No | Too large; publicly available |
+| Cache/lock files | No | Transient |
 
 ---
 
-## 10. Quality Requirements
+## 9. Design Decisions (ADR)
 
-### 10.1. Quality Tree
+### ADR-1: Manual Verification Over Automated Scraping
 
+**Status:** Accepted  
+**Context:** Contact data from 94 universities could theoretically be scraped.  
+**Decision:** Use human-led documentary verification because institutional sites employ anti-bot measures, CAPTCHAs, JavaScript-rendered email protection, and non-standard layouts. Automated scraping would produce incomplete or inaccurate results and raise legal/ethical concerns.  
+**Consequences:** Slower, but auditable and academically defensible. Every email has a human-verified source URL.
+
+### ADR-2: Two-Workbook Architecture
+
+**Status:** Accepted  
+**Context:** The project produces both an auditable base and a final contact map.  
+**Decision:** Maintain separate workbooks -- `base_auditavel_*.xlsx` (the raw pipeline output before manual work) and `mapeamento_contatos_*.xlsx` (the consolidated final deliverable). Intermediate sprint files are archived in `archive/sprints/`.  
+**Consequences:** Clear separation between reproducible script output and human-verified data. Slightly more files to manage, but each has a distinct purpose.
+
+### ADR-3: Email Non-inference Principle
+
+**Status:** Accepted  
+**Context:** Common pattern is to infer email addresses from institutional domains (e.g., secretaria@domain.uf.br).  
+**Decision:** Never infer or complete emails by domain pattern. Only record emails found in official institutional pages.  
+**Consequences:** Fewer total emails, but every recorded email is verified. Data remains defensible under academic scrutiny.
+
+### ADR-4: Three-tier Verification Status
+
+**Status:** Accepted  
+**Context:** Contact quality varies; binary found/not-found is insufficient.  
+**Decision:** Use three statuses: "Apurado" (adequate), "Apurado com ressalva" (found with caveats), "Nao encontrado" (not found after thorough search).  
+**Consequences:** More nuanced data quality signal. Caveats are explicitly documented in the observacoes field.
+
+---
+
+## 10. Quality Scenarios
+
+### 10.1 Quality Tree
+
+```mermaid
+graph TD
+  Q[Quality] --> A[Accuracy]
+  Q --> B[Auditability]
+  Q --> C[Reproducibility]
+  Q --> D[Completeness]
+  A --> A1[Verified contacts from official sources]
+  B --> B1[Every contact has URL + date + caveat]
+  C --> C1[Script reproduces official base from INEP data]
+  D --> D1[All 94 History-hosting universities classified]
 ```
-Accuracy
-├── Institution universe 100% matches INEP criteria
-├── Course list matches INEP filtered criteria
-└── No false positives from "Historia da Arte"
 
-Auditability
-├── Every contact has source URL + date
-├── Every caveat is documented in Observacoes
-└── Sprint archive preserves intermediate states
+### 10.2 Quality Scenarios
 
-Reproducibility
-├── Script rebuilds baseline from INEP CSVs
-├── Deterministic output for same input
-└── Dependency versions documented
-```
-
-### 10.2. Quality Scenarios
-
-| Scenario | Measure |
-|----------|---------|
-| New INEP census released | Update year constant, re-run script, re-verify contacts |
-| Auditor checks a contact | Must find source URL and verification date in the spreadsheet |
-| User reports wrong email | Check Observacoes for caveats; flag methodology issue |
-| New contributor | Must be able to rebuild baseline with one script |
+| Scenario | Metric | Target |
+|---|---|---|
+| New researcher reproduces the base | Pipeline runs with INEP CSVs | < 5 min setup, same results |
+| Contact accuracy audit | Random sample check against sources | 100% of sampled contacts match source |
+| University coverage | All 94 History-hosting universities classified | 100% classified |
+| Caveat transparency | Records with caveats documented | 100% of caveats have observacoes text |
+| Email validity | Syntax check pass rate | 100% of recorded emails pass basic syntax check |
 
 ---
 
-## 11. Risks and Technical Debt
+## 11. Risks & Technical Debt
+
+### 11.1 Risks
 
 | Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| INEP changes CSV format | Low | High | Year-specific constants; documented source format |
-| University removes its contact page | Medium | Medium | Archived sprints preserve historical contact data |
-| Large repo size (xlsx files) | Low | Low | Only final + audit files committed; raw INEP data excluded |
-| Manual process depends on single person | Medium | High | Methodology documented; CONTRIBUTING.md encourages new verifiers |
+|---|---|---|---|
+| INEP changes CSV format or encoding | Low | High | Pin to 2024 census; document required columns |
+| University sites restructure removing contact pages | Medium | Medium | Archive source URLs; use verified date; mark as ressalva |
+| Protection methods (Cloudflare, JS anti-spam) increase | High | Medium | Document in observacoes; mark as ressalva; note workaround |
+| INEP stops publishing microdata | Low | High | Preserve the last known base; document alternatives |
+
+### 11.2 Technical Debt
+
+| Item | Description | Priority |
+|---|---|---|
+| No automated tests | Script lacks unit/integration tests | Medium |
+| CSV encoding hardcoded | latin-1 assumed; may break with future INEP releases | Low |
+| Column name mapping duplicated | `humanize_columns` duplicates mapping logic | Low |
+| Verification status not enforced by schema | Stored as free text; typos possible | Low |
 
 ---
 
 ## 12. Glossary
 
 | Term | Definition |
-|------|------------|
-| INEP | Instituto Nacional de Estudos e Pesquisas Educacionais Anisio Teixeira |
+|---|---|
 | IES | Instituicao de Ensino Superior (Higher Education Institution) |
-| Apurado | Verified contact found in official source |
-| Apurado com ressalva | Contact found but with limitations (indirect, multi-campus, etc.) |
-| Nao encontrado | No permanent official email found |
-| Censo da Educacao Superior | Annual Brazilian higher education census by INEP |
-| CINE | Classificacao Internacional Normalizada da Educacao (Cine Brasil) |
-| Sprint | Regional verification batch (Norte/Centro-Oeste, Nordeste, Sudeste, Sul) |
+| INEP | Instituto Nacional de Estudos e Pesquisas Educacionais Anisio Teixeira |
+| Censo da Educacao Superior | Brazilian Higher Education Census, published annually by INEP |
+| TP_ORGANIZACAO_ACADEMICA | INEP variable for academic organization type (1 = University) |
+| TP_REDE | INEP variable for network type (1 = Public) |
+| CINE Brasil | Brazilian classification system for educational programs (based on ISCED) |
+| Apurado | Verification status: adequate contact found |
+| Apurado com ressalva | Verification status: contact found but with documented limitations |
+| Nao encontrado | Verification status: no permanent official contact located |
+| HTR | Handwritten Text Recognition |
+| OCR | Optical Character Recognition |
+| GLAM | Galleries, Libraries, Archives, Museums |
